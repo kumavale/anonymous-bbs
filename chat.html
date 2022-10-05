@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Anonymous BBS</title>
+        <script>
+            window.onload = function() {
+                const S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                const N = 16;
+                const userid = Array.from(crypto.getRandomValues(new Uint8Array(N))).map((n)=>S[n%S.length]).join('');
+                const chatbox = document.querySelector("#chatbox");
+                const input = document.querySelector("#input");
+
+                const websocket = new WebSocket("ws://localhost:3000/websocket");
+
+                websocket.onopen = function() {
+                    console.log("connection opened");
+                    websocket.send(userid);
+                }
+
+                websocket.onclose = function() {
+                    console.log("connection closed");
+                }
+
+                websocket.onmessage = function(e) {
+                    console.log("received message: " + e.data);
+                    var chat = document.createElement("div");
+                    chat.className = "chat";
+                    chat.innerText = e.data + "\r\n";
+                    chatbox.appendChild(chat);
+                }
+
+                input.onkeydown = function(e) {
+                    if (e.key == "Enter") {
+                        websocket.send(input.value);
+                        input.value = "";
+                    }
+                }
+            };
+        </script>
+        <style>
+            .chat {
+                margin: 16px;
+                padding: 8px;
+                border: solid 1px grey;
+                border-radius: 16px;
+            }
+            #chatbox {
+                max-width: 690px;
+                margin-bottom: 100px;
+            }
+            #input {
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                background-color: #EEEEEE;
+                max-width: 650px;
+                width: 90%;
+            }
+            footer {
+                width: 100%;
+                position: fixed;
+                bottom: 0;
+                padding: 0px 8px 32px 8px;
+                background-color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Anonymous BBS</h1>
+        <div id="chatbox"></div>
+        <footer>
+            <input id="input" type="text" placeholder="chat">
+        </footer>
+    </body>
+</html>
